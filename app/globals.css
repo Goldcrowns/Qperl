@@ -8,6 +8,12 @@ button, textarea { font: inherit; }
 .brand-font { font-family: 'Space Grotesk', sans-serif; }
 .glass { background: var(--card); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(64,75,101,.09), inset 0 1px rgba(255,255,255,.8); backdrop-filter: blur(18px); }
 .soft-grid { background-image: linear-gradient(rgba(57,74,101,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(57,74,101,.045) 1px, transparent 1px); background-size: 28px 28px; }
+.landing-screen { animation: landing-in .7s cubic-bezier(.22, 1, .36, 1) both; }
+.landing-orb { position: absolute; border-radius: 999px; filter: blur(2px); opacity: .5; pointer-events: none; animation: orb-float 8s ease-in-out infinite; }
+.landing-orb-one { width: 22rem; height: 22rem; left: 8%; top: 12%; background: radial-gradient(circle, rgba(208,227,255,.8), transparent 68%); }
+.landing-orb-two { width: 20rem; height: 20rem; right: 8%; bottom: 8%; background: radial-gradient(circle, rgba(250,242,229,.9), transparent 68%); animation-delay: -3s; }
+@keyframes landing-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes orb-float { 0%, 100% { transform: translate3d(0, 0, 0) scale(1); } 50% { transform: translate3d(0, -16px, 0) scale(1.04); } }
 ::selection { background: #172033; color: #fff; }
 
 @keyframes message-in {

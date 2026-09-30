@@ -15,6 +15,7 @@ const starterPrompts = ['Bir ürün fikrini analiz et', 'Bu metni daha iyi yaz',
 
 export default function Home() {
   const [selected, setSelected] = useState(models[0])
+  const [showLanding, setShowLanding] = useState(true)
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
@@ -52,7 +53,18 @@ export default function Home() {
       <div className="flex items-center gap-3"><button onClick={() => setMobileNav(!mobileNav)} className="rounded-lg p-2 hover:bg-white/60 md:hidden" aria-label="Menüyü aç"><Menu /></button><div className="brand-font text-[22px] font-bold tracking-[-.06em]">qperl<span className="text-[#7a8da9]">.</span></div><div className="hidden h-5 w-px bg-[var(--line)] sm:block"/><span className="hidden text-sm text-[var(--muted)] sm:block">AI çalışma alanı</span></div>
       <div className="flex items-center gap-2"><button className="rounded-xl p-2 text-[var(--muted)] hover:bg-white/60" aria-label="Bildirimler"><Bell size={18}/></button><button onClick={() => toast('Profil ayarları yakında')} className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/60 py-1 pl-1 pr-3 text-sm font-medium"><span className="grid size-7 place-items-center rounded-full bg-[#172033] text-xs text-white">A</span><span className="hidden sm:inline">Ayşe</span><ChevronDown size={14}/></button></div>
     </header>
-    <div className="mx-auto flex max-w-[1440px]">
+    {showLanding && <section className="landing-screen relative flex min-h-[calc(100vh-64px)] items-center justify-center overflow-hidden px-5 py-12">
+      <div className="landing-orb landing-orb-one" aria-hidden="true" />
+      <div className="landing-orb landing-orb-two" aria-hidden="true" />
+      <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center text-center">
+        <div className="mb-6 flex items-center gap-2 rounded-full border border-white/70 bg-white/55 px-3 py-1.5 text-xs font-semibold text-[#667897] shadow-sm backdrop-blur-md"><Sparkles size={14} /> qperl ile üretmeye başla</div>
+        <h1 className="brand-font m-0 max-w-2xl text-5xl font-semibold tracking-[-.07em] text-[#172033] sm:text-7xl">bugün ne üreteceğiz<span className="text-[#8099bd]"> ?</span></h1>
+        <p className="mt-6 max-w-lg text-sm leading-7 text-[var(--muted)] sm:text-base">Fikirlerini hayata geçirmek için doğru modeli seç. Yaz, keşfet ve qperl ile birlikte üret.</p>
+        <button onClick={() => setShowLanding(false)} className="group mt-9 flex items-center gap-3 rounded-2xl bg-[#172033] px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-[#172033]/20 transition duration-300 hover:-translate-y-1 hover:shadow-2xl"><span>Get started</span><ArrowUp size={17} className="rotate-45 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" /></button>
+        <div className="mt-12 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-xs text-[var(--muted)]"><span className="flex items-center gap-2"><Sparkles size={14} /> 12 yapay zeka modeli</span><span className="flex items-center gap-2"><Zap size={14} /> Akıcı sohbet</span><span className="flex items-center gap-2"><WandSparkles size={14} /> Birlikte üret</span></div>
+      </div>
+    </section>}
+    {!showLanding && <div className="mx-auto flex max-w-[1440px]">
       <aside className={`${mobileNav ? 'fixed inset-y-16 left-0 z-20 flex' : 'hidden'} w-64 shrink-0 flex-col border-r border-[var(--line)] bg-white/60 p-4 backdrop-blur-xl md:flex`}>
         <button onClick={() => { setMessages([]); setPrompt('') }} className="mb-5 flex items-center justify-center gap-2 rounded-xl bg-[#172033] px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-[#172033]/15 transition hover:-translate-y-0.5"><Plus size={17}/> Yeni sohbet</button>
         <nav className="flex flex-col gap-1 text-sm"><NavItem icon={<LayoutDashboard size={17}/>} label="Çalışma alanı" active/><NavItem icon={<Star size={17}/>} label="Favoriler"/><NavItem icon={<Folder size={17}/>} label="Projeler"/><NavItem icon={<BookOpen size={17}/>} label="Kütüphane"/></nav>
@@ -69,7 +81,7 @@ export default function Home() {
           <div className="mt-10 flex items-center justify-center gap-5 text-xs text-[var(--muted)]"><span className="flex items-center gap-1.5"><Sparkles size={13}/> 12 model</span><span className="size-1 rounded-full bg-[#aab4c2]"/><span className="flex items-center gap-1.5"><Zap size={13}/> Hızlı yanıt</span><span className="size-1 rounded-full bg-[#aab4c2]"/><span className="flex items-center gap-1.5"><Copy size={13}/> Kolay paylaşım</span></div>
         </div>
       </section>
-    </div>
+    </div>}
   </main>
 }
 function NavItem({icon,label,active=false}:{icon:React.ReactNode;label:string;active?:boolean}) { return <button className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left ${active ? 'bg-white/80 font-semibold shadow-sm' : 'text-[var(--muted)] hover:bg-white/60'}`}>{icon}{label}</button> }
