@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) return NextResponse.json({ error: 'OPENROUTER_API_KEY ayarlanmamış.' }, { status: 500 })
     if (model === 'Gemini Flash Lite' && process.env.GEMINI_API_KEY) {
-      const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${process.env.GEMINI_API_KEY}`, {
+      const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${process.env.GEMINI_API_KEY}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: messages.map((message: { role: string; text: string }) => `${message.role}: ${message.text}`).join('\\n') }] }], generationConfig: { maxOutputTokens: 2000, temperature: 0.7 } }),
       })
