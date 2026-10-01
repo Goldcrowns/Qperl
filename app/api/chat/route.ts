@@ -11,34 +11,29 @@ export async function POST(request: Request) {
   try {
     const { model, messages } = await request.json()
     if (!Array.isArray(messages) || messages.length === 0) {
-      return NextResponse.json({ error: 'Mesaj gerekli' }, { status: 400 })
+      return NextResponse.json({ error: 'Mesaj gerekli.' }, { status: 400 })
     }
+    const apiKey = process.env.OPENROUTER_API_KEY
+    if (!apiKey) return NextResponse.json({ error: 'OPENROUTER_API_KEY ayarlanmamış.' }, { status: 500 })
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
         'X-Title': 'qperl',
       },
       body: JSON.stringify({
         model: modelMap[model] || 'openai/gpt-4o-mini',
-        messages: messages.map((message: { role: string; text: string }) => ({ role: message.role, content: message.text })),
+        messages: messages.map((message: { role: string; text: string }) => ({ role: message.role === 'assistant' ? 'assistant' : 'user', content: message.text })),
         temperature: 0.7,
       }),
     })
     const data = await response.json()
-    if (!response.ok) return NextResponse.json({ error: data.error?.message || 'OpenRouter yanıt vermedi' }, { status: response.status })
-    return NextResponse.json({ text: data.choices?.[0]?.message?.content || 'Yanıt üretilemedi.' })
+    if (!response.ok) return NextResponse.json({ error: data?.error?.message || 'OpenRouter yanıt vermedi.' }, { status: response.status })
+    return NextResponse.json({ text: data.choices?.[0]?.message?.content || 'Yanıt alınamadı.' })
   } catch {
-    return NextResponse.json({ error: 'OpenRouter isteği başarısız oldu' }, { status: 500 })
+    return NextResponse.json({ error: 'AI servisine bağlanırken bir hata oluştu.' }, { status: 500 })
   }
 }
-
-export const runtime = 'nodejs'
-export const maxDuration = 60
-export const dynamic = 'force-dynamic'
-export const preferredRegion = 'fra1'
-export const revalidate = 0
-export const fetchCache = 'force-no-store'
