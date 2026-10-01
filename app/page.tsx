@@ -8,10 +8,10 @@ type Model = { name: string; provider: string; color: string; badge?: string }
 const models: Model[] = [
   { name: 'Claude 3.7 Sonnet', provider: 'Anthropic', color: '#d68b68', badge: 'NEW' },
   { name: 'GPT-4o', provider: 'OpenAI', color: '#59a681' },
-  { name: 'Gemini 2.5 Pro', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
+  { name: 'Gemini Flash Lite Latest', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
   { name: 'Grok 3', provider: 'xAI', color: '#1d2939' },
 ]
-const starterPrompts = ['Bir ürün fikrini analiz et', 'Bu metni daha iyi yaz', 'Kodumda hata bul', 'Bana bir plan çıkar']
+const starterPrompts = ['Bir ürün fikrininin analizi yap', 'Bu metni daha iyi yaz', 'Kodumda hata bul', 'Bana bir plan çıkar']
 
 export default function Home() {
   const [selected, setSelected] = useState(models[0])
