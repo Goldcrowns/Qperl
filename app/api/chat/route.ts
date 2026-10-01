@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 
 const modelMap: Record<string, string> = {
-  'Claude 3.7 Sonnet': 'anthropic/claude-3.7-sonnet',
-  'GPT-4o': 'openai/gpt-4o',
-  'Gemini 2.5 Pro': 'google/gemini-2.5-pro',
-  'Grok 3': 'x-ai/grok-3-beta',
+  'Llama 3.3 70B': 'meta-llama/llama-3.3-70b-instruct:free',
+  'Gemma 3 27B': 'google/gemma-3-27b-it:free',
+  'DeepSeek Chat V3': 'deepseek/deepseek-chat-v3-0324:free',
+  'Qwen 2.5 72B': 'qwen/qwen-2.5-72b-instruct:free',
 }
 
 export async function POST(request: Request) {
