@@ -26,3 +26,15 @@ button, textarea { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   .message-enter, .typing-cursor { animation: none; }
 }
+
+.markdown-content { display: flex; flex-direction: column; gap: .35rem; }
+  .markdown-content p { margin: 0; }
+  .markdown-content h2, .markdown-content h3, .markdown-content h4 { margin: .25rem 0 0; font-weight: 700; line-height: 1.25; }
+  .markdown-content h2 { font-size: 1.05rem; }
+  .markdown-content h3 { font-size: .95rem; }
+  .markdown-content h4 { font-size: .9rem; }
+  .markdown-content li { margin-left: 1rem; list-style: disc; }
+  .markdown-content strong { font-weight: 700; color: inherit; }
+  @media (prefers-reduced-motion: reduce) {
+    .markdown-content { scroll-behavior: auto; }
+  }
