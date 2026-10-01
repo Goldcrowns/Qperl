@@ -31,17 +31,26 @@ export default function Home() {
     if (container) container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
   }, [messages, isGenerating])
 
-  function sendPrompt(text = prompt) {
+  async function sendPrompt(text = prompt) {
     if (!text.trim() || isGenerating) return
     typingTimers.current.forEach((timer) => window.clearInterval(timer))
     typingTimers.current = []
-    setMessages((current) => [...current, { role: 'user', text }])
-    setPrompt(''); setIsGenerating(true)
-    window.setTimeout(() => {
-      const answer = `${selected.name} ile düşündüm. “${text}” için kapsamlı bir yanıt hazırladım. qperl üzerinde farklı modelleri karşılaştırarak en iyi sonucu birlikte geliştirebilirsin.`
-      const assistantIndex = messages.length + 1
-      setMessages((current) => [...current, { role: 'assistant', text: '' }])
+    const nextMessages = [...messages, { role: 'user', text }]
+    setMessages(nextMessages)
+    setPrompt('')
+    setIsGenerating(true)
+    setMessages((current) => [...current, { role: 'assistant', text: '' }])
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: selected.name, messages: nextMessages }),
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Yanıt alınamadı')
+      const answer = data.text as string
       let characterIndex = 0
+      const assistantIndex = nextMessages.length
       const timer = window.setInterval(() => {
         characterIndex += 2
         setMessages((current) => current.map((message, index) => index === assistantIndex ? { ...message, text: answer.slice(0, characterIndex) } : message))
@@ -50,9 +59,13 @@ export default function Home() {
           typingTimers.current = typingTimers.current.filter((item) => item !== timer)
           setIsGenerating(false)
         }
-      }, 24)
+      }, 18)
       typingTimers.current.push(timer)
-    }, 500)
+    } catch (error) {
+      setMessages((current) => current.slice(0, -1))
+      setIsGenerating(false)
+      toast(error instanceof Error ? error.message : 'OpenRouter bağlantısı kurulamadı')
+    }
   }
 
   return <main className="min-h-screen overflow-hidden">
