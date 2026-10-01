@@ -28,7 +28,7 @@ button, textarea { font: inherit; }
 
 .message-enter { animation: message-in .42s cubic-bezier(.22, 1, .36, 1) both; }
 .qoyster-stage { animation: qoyster-in .5s cubic-bezier(.22, 1, .36, 1) both; }
-.qoyster { position: relative; z-index: 1; display: flex; width: 118px; height: 118px; align-items: center; justify-content: center; gap: 17px; border: 3px solid rgba(255,255,255,.9); border-radius: 999px; background: linear-gradient(145deg, #fdfefe 0%, #dcecff 48%, #f8e9d7 100%); box-shadow: 0 16px 35px rgba(96,121,157,.22), inset 0 2px 8px rgba(255,255,255,.85); animation: qoyster-float 3.2s ease-in-out infinite; }
+.qoyster { position: relative; z-index: 1; display: flex; width: 48px; height: 48px; align-items: center; justify-content: center; gap: 17px; border: 3px solid rgba(255,255,255,.9); border-radius: 999px; background: linear-gradient(145deg, #fdfefe 0%, #dcecff 48%, #f8e9d7 100%); box-shadow: 0 16px 35px rgba(96,121,157,.22), inset 0 2px 8px rgba(255,255,255,.85); animation: qoyster-float 3.2s ease-in-out infinite; }
 .qoyster-eye { display: block; width: 15px; height: 22px; border-radius: 999px; background: #172033; box-shadow: inset 3px 3px 0 rgba(255,255,255,.45); animation: qoyster-blink 4s ease-in-out infinite; }
 .qoyster-eye-right { animation-delay: .12s; }
 .qoyster-mouth { position: absolute; bottom: 30px; width: 22px; height: 10px; border-bottom: 3px solid #172033; border-radius: 0 0 999px 999px; }
