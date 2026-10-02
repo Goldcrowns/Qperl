@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { ArrowUp, Bell, BookOpen, ChevronDown, Code2, Copy, FileText, Folder, Grid2X2, Image as ImageIcon, LayoutDashboard, LoaderCircle, Menu, Mic, MoreHorizontal, Paperclip, Plus, Search, Settings2, Sparkles, Star, WandSparkles, X, Zap } from 'lucide-react'
+import { ArrowUp, Bell, BookOpen, ChevronDown, Copy, Folder, LayoutDashboard, LoaderCircle, Menu, Mic, MoreHorizontal, Paperclip, Plus, Settings2, Sparkles, Star, Zap } from 'lucide-react'
 import { Toaster, toast } from 'sonner'
 
 type Model = { name: string; provider: string; color: string; badge?: string }
@@ -11,8 +11,6 @@ const models: Model[] = [
   { name: 'Gemini Flash Lite Latest', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
   { name: 'Grok 3', provider: 'xAI', color: '#1d2939' },
 ]
-const starterPrompts = ['Bir ürün fikrininin analizi yap', 'Bu metni daha iyi yaz', 'Kodumda hata bul', 'Bana bir plan çıkar']
-
 export default function Home() {
   const [selected, setSelected] = useState(models[0])
   const [prompt, setPrompt] = useState('')
@@ -21,7 +19,6 @@ export default function Home() {
   const [showModels, setShowModels] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const typingTimers = useRef<number[]>([])
   const audioRef = useRef<HTMLAudioElement | null>(null)
 
   async function speakLatest() {
@@ -46,28 +43,20 @@ export default function Home() {
     }
   }
 
-  function sendPrompt(text = prompt) {
+  async function sendPrompt(text = prompt) {
     if (!text.trim() || isGenerating) return
-    typingTimers.current.forEach((timer) => window.clearInterval(timer))
-    typingTimers.current = []
     setMessages((current) => [...current, { role: 'user', text }])
     setPrompt(''); setIsGenerating(true)
-    window.setTimeout(() => {
-      const answer = `${selected.name} ile düşündüm. “${text}” için kapsamlı bir yanıt hazırladım. qperl üzerinde farklı modelleri karşılaştırarak en iyi sonucu birlikte geliştirebilirsin.`
-      const assistantIndex = messages.length + 1
-      setMessages((current) => [...current, { role: 'assistant', text: '' }])
-      let characterIndex = 0
-      const timer = window.setInterval(() => {
-        characterIndex += 2
-        setMessages((current) => current.map((message, index) => index === assistantIndex ? { ...message, text: answer.slice(0, characterIndex) } : message))
-        if (characterIndex >= answer.length) {
-          window.clearInterval(timer)
-          typingTimers.current = typingTimers.current.filter((item) => item !== timer)
-          setIsGenerating(false)
-        }
-      }, 24)
-      typingTimers.current.push(timer)
-    }, 500)
+    try {
+      const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: [...messages.map((message) => ({ role: message.role, content: message.text })), { role: 'user', content: text }] }) })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error)
+      setMessages((current) => [...current, { role: 'assistant', text: data.text }])
+    } catch {
+      toast.error('Yanıt alınamadı. Groq bağlantısını kontrol et.')
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return <main className="min-h-screen overflow-hidden">
@@ -87,7 +76,7 @@ export default function Home() {
       <section className="soft-grid relative min-h-[calc(100vh-64px)] flex-1 px-4 py-6 sm:px-8 lg:px-14">
         <div className="mx-auto flex max-w-4xl flex-col">
           <div className="mb-8 flex items-end justify-between"><div><p className="mb-2 text-xs font-semibold uppercase tracking-[.18em] text-[#8090a7]">30 Eylül 2026 · Çarşamba</p><h1 className="brand-font m-0 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">Bugün ne üreteceğiz?</h1></div><button onClick={() => toast('Klavye kısayolları: ⌘ K model seç, ⌘ Enter gönder')} className="hidden items-center gap-2 rounded-lg border border-[var(--line)] bg-white/50 px-3 py-2 text-xs text-[var(--muted)] sm:flex"><span className="rounded border border-[var(--line)] px-1.5 py-0.5">⌘ K</span> Kısayollar</button></div>
-          {messages.length === 0 ? <><div className="mb-8 grid grid-cols-2 gap-3 sm:grid-cols-4">{starterPrompts.map((item, index) => <button key={item} onClick={() => setPrompt(item)} className="glass group rounded-2xl p-4 text-left transition hover:-translate-y-1 hover:bg-white/80"><div className="mb-5 grid size-8 place-items-center rounded-lg bg-white/75 text-[#657797]">{[<WandSparkles key="a" size={16}/>, <FileText key="b" size={16}/>, <Code2 key="c" size={16}/>, <Grid2X2 key="d" size={16}/>][index]}</div><span className="text-xs font-semibold leading-snug">{item}</span><ArrowUp size={14} className="mt-3 rotate-45 text-[#9aa6b8] transition group-hover:translate-x-1 group-hover:-translate-y-1"/></button>)}</div></> : <div className="mb-6 flex max-h-[52vh] flex-col gap-4 overflow-y-auto pr-1">{messages.map((message, index) => <div key={index} className={`message-enter flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`${message.role === 'user' ? 'rounded-2xl rounded-br-md bg-[#172033] text-white' : 'glass rounded-2xl rounded-bl-md'} max-w-[85%] px-4 py-3 text-sm leading-relaxed transition-all duration-300`}><div className="mb-1 text-[10px] font-semibold uppercase tracking-wider opacity-60">{message.role === 'user' ? 'Sen' : selected.name}</div>{message.role === 'assistant' ? <MarkdownMessage text={message.text} /> : message.text}{message.role === 'assistant' && isGenerating && index === messages.length - 1 && <span className="typing-cursor" aria-label="Yanıt yazılıyor" />}</div></div>)}{isGenerating && <div className="glass flex w-fit items-center gap-2 rounded-2xl px-4 py-3 text-sm text-[var(--muted)]"><Sparkles size={15} className="animate-pulse"/> Düşünüyor...</div>}</div>}
+          <div className="mb-6 flex max-h-[52vh] flex-col gap-4 overflow-y-auto pr-1">{messages.map((message, index) => <div key={index} className={`message-enter flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}><div className={`${message.role === 'user' ? 'rounded-2xl rounded-br-md bg-[#172033] text-white' : 'glass rounded-2xl rounded-bl-md'} max-w-[85%] px-4 py-3 text-sm leading-relaxed transition-all duration-300`}><div className="mb-1 text-[10px] font-semibold uppercase tracking-wider opacity-60">{message.role === 'user' ? 'Sen' : selected.name}</div>{message.role === 'assistant' ? <MarkdownMessage text={message.text} /> : message.text}{message.role === 'assistant' && isGenerating && index === messages.length - 1 && <span className="typing-cursor" aria-label="Yanıt yazılıyor" />}</div></div>)}{isGenerating && <div className="glass flex w-fit items-center gap-2 rounded-2xl px-4 py-3 text-sm text-[var(--muted)]"><Sparkles size={15} className="animate-pulse"/> Düşünüyor...</div>}</div>
           <div className="glass relative rounded-3xl p-2 transition focus-within:ring-2 focus-within:ring-[#8099bd]/30"><textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing && event.keyCode !== 229) { event.preventDefault(); sendPrompt() } }} placeholder="qperl'e bir şey sor..." rows={3} className="w-full resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-[#9aa6b8]"/><div className="flex items-center justify-between gap-2 border-t border-[var(--line)] px-2 pt-2"><div className="flex items-center gap-1"><button onClick={() => toast('Dosya yükleme için sürükleyip bırakabilirsin')} className="rounded-lg p-2 text-[var(--muted)] hover:bg-white/70" aria-label="Dosya ekle"><Paperclip size={17}/></button><button onClick={speakLatest} disabled={isSpeaking} className="rounded-lg p-2 text-[var(--muted)] hover:bg-white/70 disabled:opacity-50" aria-label="Mikrofonla sesli yanıt al">{isSpeaking ? <LoaderCircle size={17} className="animate-spin"/> : <Mic size={17}/>}</button><span className="hidden pl-2 text-[11px] text-[var(--muted)] sm:inline">Shift + Enter ile yeni satır</span></div><div className="relative flex items-center gap-2"><button onClick={() => setShowModels(!showModels)} className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium hover:bg-white/70"><span className="size-2 rounded-full" style={{backgroundColor: selected.color}}/>{selected.name}<ChevronDown size={14}/></button>{showModels && <div className="glass absolute bottom-11 right-0 z-10 w-64 rounded-2xl p-2">{models.map((model) => <button key={model.name} onClick={() => { setSelected(model); setShowModels(false) }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-xs hover:bg-white/70"><span className="size-2.5 rounded-full" style={{backgroundColor:model.color}}/><span className="flex-1"><b className="block">{model.name}</b><span className="text-[10px] text-[var(--muted)]">{model.provider}</span></span>{model.badge && <span className="text-[9px] font-bold text-[#8392a7]">{model.badge}</span>}</button>)}</div>}<button onClick={() => sendPrompt()} disabled={!prompt.trim() || isGenerating} className="grid size-9 place-items-center rounded-xl bg-[#172033] text-white transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Gönder"><ArrowUp size={17}/></button></div></div></div>
           <p className="mt-4 text-center text-[11px] text-[var(--muted)]">qperl bazen hata yapabilir. Önemli bilgileri kontrol etmeyi unutma.</p>
           <div className="mt-10 flex items-center justify-center gap-5 text-xs text-[var(--muted)]"><span className="flex items-center gap-1.5"><Sparkles size={13}/> 12 model</span><span className="size-1 rounded-full bg-[#aab4c2]"/><span className="flex items-center gap-1.5"><Zap size={13}/> Hızlı yanıt</span><span className="size-1 rounded-full bg-[#aab4c2]"/><span className="flex items-center gap-1.5"><Copy size={13}/> Kolay paylaşım</span></div>
