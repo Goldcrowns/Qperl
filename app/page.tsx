@@ -7,7 +7,7 @@ import { Toaster, toast } from 'sonner'
 type Model = { name: string; provider: string; color: string; badge?: string }
 const models: Model[] = [
   { name: 'Claude 3.7 Sonnet', provider: 'Anthropic', color: '#d68b68', badge: 'NEW' },
-  { name: 'GPT-4o', provider: 'OpenAI', color: '#59a681' },
+  { name: 'GPT-OSS 20B', provider: 'OpenAI', color: '#59a681' },
   { name: 'Gemini Flash Lite Latest', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
   { name: 'Grok 3', provider: 'xAI', color: '#1d2939' },
 ]
