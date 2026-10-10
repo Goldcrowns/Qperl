@@ -40,6 +40,11 @@ export default function Home() {
   const [mobileNav, setMobileNav] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [activeSection, setActiveSection] = useState('Çalışma alanı')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [attachedFile, setAttachedFile] = useState<string | null>(null)
 
   async function speakLatest() {
     const latest = [...messages]
@@ -128,14 +133,17 @@ export default function Home() {
         </div>
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setNotificationsOpen((open) => !open)}
             className="rounded-xl p-2 text-[var(--muted)] hover:bg-white/60"
             aria-label="Bildirimler"
+            aria-expanded={notificationsOpen}
           >
             <Bell size={18} />
           </button>
           <button
-            onClick={() => toast('Profil ayarları yakında')}
+            onClick={() => setProfileOpen((open) => !open)}
             className="flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/60 py-1 pl-1 pr-3 text-sm font-medium"
+            aria-expanded={profileOpen}
           >
             <span className="grid size-7 place-items-center rounded-full bg-[#172033] text-xs text-white">
               A
@@ -143,6 +151,8 @@ export default function Home() {
             <span className="hidden sm:inline">Kişi</span>
             <ChevronDown size={14} />
           </button>
+          {profileOpen && <div className="absolute right-5 top-14 z-30 w-48 rounded-2xl border border-[var(--line)] bg-white p-3 text-xs shadow-xl"><p className="font-semibold">Kişi hesabı</p><p className="mt-1 text-[var(--muted)]">Misafir oturumu</p><button onClick={() => { setProfileOpen(false); toast('Profil ayarları hazır.') }} className="mt-3 w-full rounded-lg bg-[#172033] px-3 py-2 text-white">Profil ayarları</button></div>}
+          {notificationsOpen && <div className="absolute right-20 top-14 z-30 w-56 rounded-2xl border border-[var(--line)] bg-white p-3 text-xs shadow-xl"><p className="font-semibold">Bildirimler</p><p className="mt-1 text-[var(--muted)]">Henüz yeni bildirimin yok.</p></div>}
         </div>
       </header>
       <div className="mx-auto flex max-w-[1440px]">
@@ -161,24 +171,24 @@ export default function Home() {
             <Plus size={17} /> Yeni sohbet
           </button>
           <nav className="flex flex-col gap-1 text-sm">
-            <NavItem icon={<LayoutDashboard size={17} />} label="Çalışma alanı" active />
-            <NavItem icon={<Star size={17} />} label="Favoriler" />
-            <NavItem icon={<Folder size={17} />} label="Projeler" />
-            <NavItem icon={<BookOpen size={17} />} label="Kütüphane" />
+            <NavItem icon={<LayoutDashboard size={17} />} label="Çalışma alanı" active={activeSection === 'Çalışma alanı'} onClick={() => setActiveSection('Çalışma alanı')} />
+            <NavItem icon={<Star size={17} />} label="Favoriler" active={activeSection === 'Favoriler'} onClick={() => { setActiveSection('Favoriler'); toast('Favoriler yakında burada görünecek.') }} />
+            <NavItem icon={<Folder size={17} />} label="Projeler" active={activeSection === 'Projeler'} onClick={() => { setActiveSection('Projeler'); toast('Proje alanı seçildi.') }} />
+            <NavItem icon={<BookOpen size={17} />} label="Kütüphane" active={activeSection === 'Kütüphane'} onClick={() => { setActiveSection('Kütüphane'); toast('Kütüphane seçildi.') }} />
           </nav>
           <div className="my-7 h-px bg-[var(--line)]" />
           <div className="mb-3 flex items-center justify-between px-2 text-[10px] font-bold uppercase tracking-[.16em] text-[var(--muted)]">
             <span>Son sohbetler</span>
-            <MoreHorizontal size={15} />
+            <button onClick={() => toast('Sohbet geçmişi menüsü')} className="rounded p-1 hover:bg-white/70" aria-label="Sohbet geçmişi seçenekleri"><MoreHorizontal size={15} /></button>
           </div>
           <div className="flex flex-col gap-1">
-            <ChatItem title="Landing page fikirleri" />
-            <ChatItem title="Kampanya stratejisi" />
-            <ChatItem title="React component refactor" />
-            <ChatItem title="Marka isimleri" />
+            <ChatItem title="Landing page fikirleri" onClick={() => setPrompt('Landing page fikirleri hakkında yardım et')} />
+            <ChatItem title="Kampanya stratejisi" onClick={() => setPrompt('Kampanya stratejisi oluştur')} />
+            <ChatItem title="React component refactor" onClick={() => setPrompt('React component refactor öner')} />
+            <ChatItem title="Marka isimleri" onClick={() => setPrompt('Marka isimleri öner')} />
           </div>
           <div className="mt-auto flex flex-col gap-1 text-sm">
-            <NavItem icon={<Settings2 size={17} />} label="Ayarlar" />
+            <NavItem icon={<Settings2 size={17} />} label="Ayarlar" active={activeSection === 'Ayarlar'} onClick={() => { setActiveSection('Ayarlar'); toast('Ayarlar paneli yakında açılacak.') }} />
             <div className="mt-3 rounded-xl bg-[#172033]/[.05] p-3">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold">
                 <Zap size={14} className="text-[#c78a48]" /> Pro plan
@@ -229,7 +239,10 @@ export default function Home() {
                       {message.role === 'user' ? 'Sen' : selected.name}
                     </div>
                     {message.role === 'assistant' ? (
-                      <MarkdownMessage text={message.text} />
+                      <>
+                        <MarkdownMessage text={message.text} />
+                        <button onClick={() => navigator.clipboard?.writeText(message.text).then(() => toast('Yanıt kopyalandı'))} className="mt-3 flex items-center gap-1 text-[10px] text-[var(--muted)] hover:text-[#172033]" aria-label="Yanıtı kopyala"><Copy size={12} /> Kopyala</button>
+                      </>
                     ) : (
                       message.text
                     )}
@@ -248,6 +261,7 @@ export default function Home() {
               )}
             </div>
             <div className="glass relative rounded-3xl p-2 transition focus-within:ring-2 focus-within:ring-[#8099bd]/30">
+              {attachedFile && <button onClick={() => setAttachedFile(null)} className="mb-2 ml-3 text-left text-[11px] text-[#657797] underline">Ek: {attachedFile} · kaldır</button>}
               <textarea
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
@@ -268,10 +282,9 @@ export default function Home() {
               />
               <div className="flex items-center justify-between gap-2 border-t border-[var(--line)] px-2 pt-2">
                 <div className="flex items-center gap-1">
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={(event) => { const file = event.target.files?.[0]; if (file) { setAttachedFile(file.name); toast(`${file.name} eklendi`) } }} />
                   <button
-                    onClick={() =>
-                      toast('Dosya yükleme için sürükleyip bırakabilirsin')
-                    }
+                    onClick={() => fileInputRef.current?.click()}
                     className="rounded-lg p-2 text-[var(--muted)] hover:bg-white/70"
                     aria-label="Dosya ekle"
                   >
@@ -399,13 +412,16 @@ function NavItem({
   icon,
   label,
   active = false,
+  onClick,
 }: {
   icon: React.ReactNode
   label: string
   active?: boolean
+  onClick?: () => void
 }) {
   return (
     <button
+      onClick={onClick}
       className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left ${
         active ? 'bg-white/80 font-semibold shadow-sm' : 'text-[var(--muted)] hover:bg-white/60'
       }`}
@@ -416,9 +432,9 @@ function NavItem({
   )
 }
 
-function ChatItem({ title }: { title: string }) {
+function ChatItem({ title, onClick }: { title: string; onClick?: () => void }) {
   return (
-    <button className="flex items-center gap-2 truncate rounded-lg px-3 py-2 text-left text-xs text-[var(--muted)] hover:bg-white/60">
+    <button onClick={onClick} className="flex items-center gap-2 truncate rounded-lg px-3 py-2 text-left text-xs text-[var(--muted)] hover:bg-white/60">
       <span className="size-1.5 shrink-0 rounded-full bg-[#b9c7d8]" />
       {title}
     </button>
