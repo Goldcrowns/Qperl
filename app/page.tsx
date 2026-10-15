@@ -207,7 +207,7 @@ export default function Home() {
   return (
     <main className="min-h-screen overflow-hidden">
       <Toaster position="bottom-right" />
-      <header className="relative flex h-16 items-center justify-between border-b border-[var(--line)] bg-white/35 px-5 backdrop-blur-xl md:px-8">
+      <header className="relative flex min-h-16 items-center justify-between gap-2 border-b border-[var(--line)] bg-white/35 px-3 py-2 backdrop-blur-xl sm:px-5 md:px-8">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setMobileNav((open) => !open)}
@@ -278,7 +278,7 @@ export default function Home() {
         <aside
           className={`${
             mobileNav ? 'fixed inset-y-16 left-0 z-20 flex md:static md:inset-auto' : 'hidden'
-          } w-64 shrink-0 flex-col border-r border-[var(--line)] bg-white/60 p-4 backdrop-blur-xl md:flex`}
+          } mobile-sidebar w-64 shrink-0 flex-col border-r border-[var(--line)] bg-white/60 p-4 backdrop-blur-xl md:flex`}
         >
           <button
             onClick={() => {
@@ -351,9 +351,9 @@ export default function Home() {
             </div>
           </div>
         </aside>
-        <section className="soft-grid relative min-h-[calc(100vh-64px)] flex-1 px-4 py-6 sm:px-8 lg:px-14">
+        <section className="soft-grid relative min-h-[calc(100vh-64px)] min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6 lg:px-14">
           <div className="mx-auto flex max-w-4xl flex-col">
-            <div className="mb-8 flex items-end justify-between">
+            <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
               <h1 className="brand-font m-0 text-3xl font-semibold tracking-[-.05em] sm:text-4xl">
                 Bugün ne üreteceğiz?
               </h1>
@@ -365,7 +365,7 @@ export default function Home() {
                 Model seç
               </button>
             </div>
-            <div className="mb-6 flex max-h-[52vh] flex-col gap-4 overflow-y-auto pr-1">
+            <div className="mb-5 flex max-h-[calc(100vh-270px)] min-h-[180px] flex-col gap-3 overflow-y-auto pr-1 sm:mb-6 sm:max-h-[52vh] sm:gap-4">
               {messages.map((message, index) => (
                 <div
                   key={index}
@@ -412,7 +412,7 @@ export default function Home() {
               )}
               <div ref={bottomRef} />
             </div>
-            <div className="glass relative rounded-3xl p-2 transition focus-within:ring-2 focus-within:ring-[#8099bd]/30">
+            <div className="glass relative rounded-2xl p-2 transition focus-within:ring-2 focus-within:ring-[#8099bd]/30 sm:rounded-3xl">
               {attachment && (
                 <button
                   onClick={() => setAttachment(null)}
@@ -476,15 +476,15 @@ export default function Home() {
                 <div className="relative flex items-center gap-2">
                   <button
                     onClick={() => setShowModels((open) => !open)}
-                    className="flex items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium hover:bg-white/70"
+                    className="flex max-w-[170px] items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium hover:bg-white/70 sm:max-w-none"
                     aria-expanded={showModels}
                   >
                     <span
                       className="size-2 rounded-full"
                       style={{ backgroundColor: selected.color }}
                     />
-                    {selected.name}
-                    <ChevronDown size={14} />
+                    <span className="max-w-[118px] truncate sm:max-w-none">{selected.name}</span>
+                    <ChevronDown size={14} className="shrink-0" />
                   </button>
                   {showModels && (
                     <div className="glass absolute bottom-11 right-0 z-10 w-64 rounded-2xl p-2">
