@@ -28,10 +28,11 @@ type Message = { role: 'user' | 'assistant'; text: string; model?: string }
 type Attachment = { name: string; content: string }
 
 const models: Model[] = [
-  { name: 'Gemini 3.6', provider: 'Google', color: '#d68b68', badge: 'NEW' },
-  { name: 'Gemini 3.7', provider: 'OpenAI', color: '#59a681' },
-  { name: 'Gemini Flash Lite Latest', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
-  { name: 'Grok 3', provider: 'xAI', color: '#1d2939' },
+  { name: 'gemini-3.5-flash-lite', provider: 'Google Gemini', color: '#d68b68', badge: 'NEW' },
+  { name: 'gemini-3.1-flash-lite', provider: 'Google Gemini', color: '#59a681' },
+  { name: 'gemini-3.1-flash-lite-image', provider: 'Google Gemini', color: '#8b74d9', badge: 'IMAGE' },
+  { name: 'gemini-flash-lite-latest', provider: 'Google Gemini', color: '#6a8eea', badge: 'FAST' },
+  { name: 'gemini-flash-latest', provider: 'Google Gemini', color: '#4b9f83' },
 ]
 
 const MAX_FILE_SIZE = 100 * 1024
@@ -163,7 +164,7 @@ export default function Home() {
       // Başarısız mesajı geri al, yazdığın metni koru
       setMessages((current) => current.slice(0, -1))
       setPrompt(text)
-      toast.error('Yanıt alınamadı. Groq bağlantısını kontrol et.')
+      toast.error('Yanıt alınamadı. Gemini bağlantısını kontrol et.')
     } finally {
       setIsGenerating(false)
     }
