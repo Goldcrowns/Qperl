@@ -164,7 +164,7 @@ export default function Home() {
       // Başarısız mesajı geri al, yazdığın metni koru
       setMessages((current) => current.slice(0, -1))
       setPrompt(text)
-      toast.error('Yanıt alınamadı. Groq bağlantısını kontrol et.')
+      toast.error('Yanıt alınamadı. Gemini bağlantısını kontrol et.')
     } finally {
       setIsGenerating(false)
     }
