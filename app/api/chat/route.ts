@@ -1,22 +1,32 @@
+import { GoogleGenAI } from '@google/genai'
 import { NextResponse } from 'next/server'
 
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY })
+
+// Arayüzdeki model adı -> AI Studio model kimliği.
+// Kimlikleri aistudio.google.com'daki model listesinden kontrol et.
+const MODEL_IDS: Record<string, string> = {
+  'Gemini 3.6': 'gemini-3.6-latest', 'Gemini Flash Lite Latest': 'gemini-flash-lite-latest','Gemini 3.7':'gemini-3.7-latest'
+}
+const DEFAULT_MODEL = 'gemini-flash-lite-latest'
+
 export async function POST(request: Request) {
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) return NextResponse.json({ error: 'Groq API anahtarı yapılandırılmamış.' }, { status: 503 })
+  try {
+    const { model, messages } = await request.json()
 
-  const body = await request.json().catch(() => null)
-  const messages = body?.messages
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return NextResponse.json({ error: 'Geçerli bir mesaj gerekli.' }, { status: 400 })
+    const contents = (messages as { role: string; content: string }[]).map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }))
+
+    const result = await ai.models.generateContent({
+      model: MODEL_IDS[model] ?? DEFAULT_MODEL,
+      contents,
+    })
+
+    return NextResponse.json({ text: result.text ?? '' })
+  } catch (error) {
+    console.error(error)
+    return NextResponse.json({ error: 'Gemini isteği başarısız oldu.' }, { status: 500 })
   }
-
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 2000, temperature: 0.7 }),
-  })
-
-  if (!response.ok) return NextResponse.json({ error: 'Groq yanıtı alınamadı.' }, { status: response.status })
-  const data = await response.json()
-  return NextResponse.json({ text: data.choices?.[0]?.message?.content ?? 'Yanıt üretilemedi.' })
 }
