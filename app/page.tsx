@@ -29,7 +29,7 @@ type Attachment = { name: string; content: string }
 
 const models: Model[] = [
   { name: 'Gemini 3.6', provider: 'Google', color: '#d68b68', badge: 'NEW' },
-  { name: 'GPT-OSS 20B', provider: 'OpenAI', color: '#59a681' },
+  { name: 'Gemini 3.7', provider: 'OpenAI', color: '#59a681' },
   { name: 'Gemini Flash Lite Latest', provider: 'Google', color: '#6a8eea', badge: 'FAST' },
   { name: 'Grok 3', provider: 'xAI', color: '#1d2939' },
 ]
