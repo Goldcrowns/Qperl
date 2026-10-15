@@ -35,6 +35,17 @@ button, textarea { font: inherit; }
   .markdown-content h4 { font-size: .9rem; }
   .markdown-content li { margin-left: 1rem; list-style: disc; }
   .markdown-content strong { font-weight: 700; color: inherit; }
+
+@media (max-width: 639px) {
+  body { overflow-x: hidden; }
+  textarea { font-size: 16px; }
+  .markdown-content { overflow-wrap: anywhere; }
+  button { touch-action: manipulation; }
+}
+
+@media (max-width: 767px) {
+  .mobile-sidebar { width: min(82vw, 320px); box-shadow: 18px 0 40px rgba(23,32,51,.12); }
+}
   @media (prefers-reduced-motion: reduce) {
     .markdown-content { scroll-behavior: auto; }
   }
