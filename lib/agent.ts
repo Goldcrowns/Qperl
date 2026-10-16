@@ -43,7 +43,7 @@ export const tools = {
 
 // --- Agent tanımı (v5) ---
 export const agent = {
-  model: google('gemini-2.0-flash'),
+  model: google('gemini-flash-lite-latest'),
   system: `Sen Qperl sitesinin yardımcı asistanısın.
 Kullanıcıya Türkçe, kısa ve net cevap ver.
 Ürün sorulursa searchProducts, sipariş sorulursa getUserOrders aracını kullan.
