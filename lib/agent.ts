@@ -1,25 +1,53 @@
-import { generateText, tool } from 'ai';
-import { openai } from '@ai-sdk/openai';
+// lib/agent.ts
+import { google } from '@ai-sdk/google';
+import { tool } from 'ai';
 import { z } from 'zod';
 
-export const siteAgent = {
-  model: gemini('gemini-3.5-flash'),
-  system: `Sen site asistanısın. Kullanıcıya yardım et.
-  Gerektiğinde araçları kullan. Emin değilsen sor.`,
-  tools: {
-    searchProducts: tool({
-      description: 'Sitede ürün arar',
-      parameters: z.object({ query: z.string() }),
-      execute: async ({ query }) => {
-        // kendi DB/API çağrın
-        return await db.products.search(query);
-      }
-    }),
-    getUserOrders: tool({
-      description: 'Kullanıcının siparişlerini getirir',
-      parameters: z.object({ userId: z.string() }),
-      execute: async ({ userId }) => await db.orders.byUser(userId)
-    })
+// --- Geçici sahte DB (sonra gerçek veritabanınla değiştir) ---
+const db = {
+  products: {
+    search: async (query: string) => [
+      { id: 1, name: `${query} ürün 1`, price: 100 },
+      { id: 2, name: `${query} ürün 2`, price: 200 }
+    ]
   },
-  maxSteps: 5  // sonsuz döngü koruması
+  orders: {
+    byUser: async (userId: string) => [
+      { id: 'ORD-1', userId, status: 'kargoda', total: 150 }
+    ]
+  }
+};
+
+// --- Araçlar (Agent'ın kullanabileceği yetenekler) ---
+export const tools = {
+  searchProducts: tool({
+    description: 'Sitede ürün arar. Kullanıcı ürün/hizmet sorduğunda kullan.',
+    parameters: z.object({
+      query: z.string().describe('Aranacak kelime')
+    }),
+    execute: async ({ query }) => {
+      return await db.products.search(query);
+    }
+  }),
+
+  getUserOrders: tool({
+    description: 'Kullanıcının siparişlerini getirir.',
+    parameters: z.object({
+      userId: z.string().describe('Kullanıcı ID')
+    }),
+    execute: async ({ userId }) => {
+      return await db.orders.byUser(userId);
+    }
+  })
+};
+
+// --- Agent tanımı ---
+export const agent = {
+  model: google('gemini-2.0-flash'),   // ✅ Doğru kullanım
+  system: `Sen Qperl sitesinin yardımcı asistanısın.
+Kullanıcıya Türkçe, kısa ve net cevap ver.
+Ürün sorulursa searchProducts, sipariş sorulursa getUserOrders aracını kullan.
+Bilmediğin şeyi uydurma, kullanıcıya sor.`,
+  tools,
+  maxSteps: 5
 };
