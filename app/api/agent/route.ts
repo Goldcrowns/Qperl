@@ -18,12 +18,10 @@ export async function POST(req: Request) {
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error('[agent] hata:', error);
-    return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : 'Bilinmeyen hata'
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    console.error('[agent]', error);
+    return Response.json(
+      { error: error instanceof Error ? error.message : 'Hata' },
+      { status: 500 }
     );
   }
 }
