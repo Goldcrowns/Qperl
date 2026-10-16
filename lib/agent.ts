@@ -25,7 +25,7 @@ export const tools = {
     parameters: z.object({
       query: z.string().describe('Aranacak kelime')
     }),
-    execute: async ({ query }) => {
+    execute: async ({ query }: { query: string }) => {   // ⬅️ TİP EKLENDİ
       return await db.products.search(query);
     }
   }),
@@ -35,7 +35,7 @@ export const tools = {
     parameters: z.object({
       userId: z.string().describe('Kullanıcı ID')
     }),
-    execute: async ({ userId }) => {
+    execute: async ({ userId }: { userId: string }) => { // ⬅️ TİP EKLENDİ
       return await db.orders.byUser(userId);
     }
   })
@@ -43,7 +43,7 @@ export const tools = {
 
 // --- Agent tanımı ---
 export const agent = {
-  model: google('gemini-2.0-flash'),   // ✅ Doğru kullanım
+  model: google('gemini-2.0-flash'),
   system: `Sen Qperl sitesinin yardımcı asistanısın.
 Kullanıcıya Türkçe, kısa ve net cevap ver.
 Ürün sorulursa searchProducts, sipariş sorulursa getUserOrders aracını kullan.
