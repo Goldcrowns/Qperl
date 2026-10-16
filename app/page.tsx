@@ -1,5 +1,9 @@
 'use client'
 
+// ═══════════════════════════════════════════════════════════════
+// BÖLÜM 1: IMPORT'LAR + TİPLER + SABİTLER
+// ═══════════════════════════════════════════════════════════════
+
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
@@ -36,8 +40,12 @@ const models: Model[] = [
 ]
 
 const MAX_FILE_SIZE = 100 * 1024
+// ═══════════════════════════════════════════════════════════════
+// BÖLÜM 2: ANA BİLEŞEN — STATE + FONKSİYONLAR + JSX
+// ═══════════════════════════════════════════════════════════════
 
 export default function Home() {
+  // ───────────── STATE ─────────────
   const [selected, setSelected] = useState(models[0])
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
@@ -45,15 +53,17 @@ export default function Home() {
   const [showModels, setShowModels] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   const [isSpeaking, setIsSpeaking] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const bottomRef = useRef<HTMLDivElement | null>(null)
   const [activeSection, setActiveSection] = useState('Çalışma alanı')
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [attachment, setAttachment] = useState<Attachment | null>(null)
 
-  // ⌘/Ctrl + K: model seçiciyi aç/kapat
+  // ───────────── REF'LER ─────────────
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const bottomRef = useRef<HTMLDivElement | null>(null)
+
+  // ───────────── EFFECT'LER ─────────────
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
@@ -65,18 +75,17 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handler)
   }, [])
 
-  // Yeni mesajda listeyi en alta kaydır
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages, isGenerating])
 
-  // Sayfadan çıkarken sesi durdur
   useEffect(() => {
     return () => {
       audioRef.current?.pause()
     }
   }, [])
 
+  // ───────────── FONKSİYONLAR ─────────────
   async function speakLatest() {
     if (isSpeaking) return
 
@@ -124,47 +133,81 @@ export default function Home() {
       toast.error('Sesli yanıt alınamadı.')
     }
   }
-
-  async function sendPrompt(text = prompt) {
+async function sendPrompt(text = prompt) {
     if (!text.trim() || isGenerating) return
 
-    // Eklenen metin dosyasını mesaja dahil et
     const fullText = attachment
       ? `${text}\n\n[Ek dosya: ${attachment.name}]\n${attachment.content}`
       : text
 
-    const history = messages.map((message) => ({
-      role: message.role,
-      content: message.text,
+    const history = messages.map((m) => ({
+      role: m.role,
+      parts: [{ type: 'text', text: m.text }],
     }))
 
-    setMessages((current) => [...current, { role: 'user', text }])
+    setMessages((c) => [...c, { role: 'user', text }])
     setPrompt('')
     setAttachment(null)
     setIsGenerating(true)
 
+    setMessages((c) => [
+      ...c,
+      { role: 'assistant', text: '', model: selected.name },
+    ])
+
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: selected.name,
-          messages: [...history, { role: 'user', content: fullText }],
+          messages: [
+            ...history,
+            { role: 'user', parts: [{ type: 'text', text: fullText }] },
+          ],
         }),
       })
 
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok || !data.text) throw new Error(data.error || 'chat')
+      if (!response.ok || !response.body) throw new Error('agent')
 
-      setMessages((current) => [
-        ...current,
-        { role: 'assistant', text: data.text, model: selected.name },
-      ])
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let assistantText = ''
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+
+        for (const line of chunk.split('\n')) {
+          if (line.startsWith('0:')) {
+            try {
+              const delta = JSON.parse(line.slice(2))
+              if (typeof delta === 'string') {
+                assistantText += delta
+                setMessages((c) => {
+                  const copy = [...c]
+                  const last = copy.length - 1
+                  copy[last] = {
+                    role: 'assistant',
+                    text: assistantText,
+                    model: selected.name,
+                  }
+                  return copy
+                })
+              }
+            } catch {
+              // parse hatası, atla
+            }
+          }
+        }
+      }
+
+      if (!assistantText.trim()) throw new Error('empty')
     } catch {
-      // Başarısız mesajı geri al, yazdığın metni koru
-      setMessages((current) => current.slice(0, -1))
+      setMessages((c) => c.slice(0, -2))
       setPrompt(text)
-      toast.error('Yanıt alınamadı. Gemini bağlantısını kontrol et.')
+      toast.error('Agent yanıt veremedi. Tekrar dene.')
     } finally {
       setIsGenerating(false)
     }
@@ -203,7 +246,7 @@ export default function Home() {
     setPrompt(text)
     setMobileNav(false)
   }
-
+  // ───────────── JSX ─────────────
   return (
     <main className="min-h-screen overflow-hidden">
       <Toaster position="bottom-right" />
@@ -368,7 +411,7 @@ export default function Home() {
             <div className="mb-5 flex max-h-[calc(100vh-270px)] min-h-[180px] flex-col gap-3 overflow-y-auto pr-1 sm:mb-6 sm:max-h-[52vh] sm:gap-4">
               {messages.map((message, index) => (
                 <div
-                  key={index}
+                  key={`${message.role}-${index}`}
                   className={`message-enter flex gap-3 ${
                     message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
@@ -385,19 +428,25 @@ export default function Home() {
                     </div>
                     {message.role === 'assistant' ? (
                       <>
-                        <MarkdownMessage text={message.text} />
-                        <button
-                          onClick={() =>
-                            navigator.clipboard
-                              ?.writeText(message.text)
-                              .then(() => toast('Yanıt kopyalandı'))
-                              .catch(() => toast.error('Kopyalanamadı'))
-                          }
-                          className="mt-3 flex items-center gap-1 text-[10px] text-[var(--muted)] hover:text-[#172033]"
-                          aria-label="Yanıtı kopyala"
-                        >
-                          <Copy size={12} /> Kopyala
-                        </button>
+                        {message.text ? (
+                          <MarkdownMessage text={message.text} />
+                        ) : (
+                          <span className="text-[var(--muted)]">...</span>
+                        )}
+                        {message.text && (
+                          <button
+                            onClick={() =>
+                              navigator.clipboard
+                                ?.writeText(message.text)
+                                .then(() => toast('Yanıt kopyalandı'))
+                                .catch(() => toast.error('Kopyalanamadı'))
+                            }
+                            className="mt-3 flex items-center gap-1 text-[10px] text-[var(--muted)] hover:text-[#172033]"
+                            aria-label="Yanıtı kopyala"
+                          >
+                            <Copy size={12} /> Kopyala
+                          </button>
+                        )}
                       </>
                     ) : (
                       <span className="whitespace-pre-wrap">{message.text}</span>
@@ -405,7 +454,7 @@ export default function Home() {
                   </div>
                 </div>
               ))}
-              {isGenerating && (
+              {isGenerating && messages[messages.length - 1]?.text === '' && (
                 <div className="glass flex w-fit items-center gap-2 rounded-2xl px-4 py-3 text-sm text-[var(--muted)]">
                   <Sparkles size={15} className="animate-pulse" /> Düşünüyor...
                 </div>
@@ -549,8 +598,9 @@ export default function Home() {
     </main>
   )
 }
-
-/* ---------- Markdown ---------- */
+// ═══════════════════════════════════════════════════════════════
+// BÖLÜM 3: YARDIMCI BİLEŞENLER + MARKDOWN
+// ═══════════════════════════════════════════════════════════════
 
 function renderInline(text: string): ReactNode[] {
   return text.split(/(\*\*.*?\*\*|`[^`]+`)/g).map((part, index) => {
@@ -588,7 +638,6 @@ function MarkdownMessage({ text }: { text: string }) {
   }
 
   lines.forEach((line) => {
-    // Kod bloğu (```)
     if (line.trim().startsWith('```')) {
       if (codeLines === null) {
         flushList()
@@ -626,7 +675,6 @@ function MarkdownMessage({ text }: { text: string }) {
   })
 
   flushList()
-  // Kapanmamış kod bloğu (yanıt yarıda kesildiyse)
   if (codeLines !== null) {
     blocks.push(
       <pre
@@ -640,8 +688,6 @@ function MarkdownMessage({ text }: { text: string }) {
 
   return <div className="markdown-content">{blocks}</div>
 }
-
-/* ---------- Küçük bileşenler ---------- */
 
 function NavItem({
   icon,
@@ -678,3 +724,4 @@ function ChatItem({ title, onClick }: { title: string; onClick?: () => void }) {
     </button>
   )
 }
+
