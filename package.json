@@ -9,16 +9,18 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@ai-sdk/google": "latest",
     "@ai-sdk/react": "latest",
-    "@tailwindcss/postcss": "^4.3.3",
     "ai": "latest",
+    "@tailwindcss/postcss": "^4.3.3",
     "lucide-react": "latest",
     "next": "latest",
     "postcss": "^8.5.28",
     "react": "latest",
     "react-dom": "latest",
     "sonner": "latest",
-    "tailwindcss": "^4.3.3"
+    "tailwindcss": "^4.3.3",
+    "zod": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",
